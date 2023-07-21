@@ -68,9 +68,9 @@ namespace CRUDTests
         {
             //Arrange
             
-            PersonAddRequest person_add_request = _fixture.Create<PersonAddRequest>();//WITH VALID VALUES FOR PROPERTIES
-            PersonResponse person_response = _fixture.Create<PersonResponse>();//WITH VALID VALUES FOR PROPERTIES
-            List<CountryResponse> countries = _fixture.Create<List<CountryResponse>>();//WITH VALID VALUES FOR PROPERTIES
+            PersonAddRequest person_add_request = _fixture.Create<PersonAddRequest>();
+            PersonResponse person_response = _fixture.Create<PersonResponse>();
+            List<CountryResponse> countries = _fixture.Create<List<CountryResponse>>();
 
             _countriesServiceMock.Setup(c => c.GetAllCountries()).ReturnsAsync(countries);
             _personsServiceMock.Setup(p => p.AddPerson(It.IsAny<PersonAddRequest>())).ReturnsAsync(person_response);
@@ -78,12 +78,12 @@ namespace CRUDTests
             PersonsController personsController = new PersonsController(_personsService, _countriesService);
 
             //Act
-            personsController.ModelState.AddModelError("PersonName", "PersonName can't be blank");//ERROR ADDED MANUALLY
+            personsController.ModelState.AddModelError("PersonName", "PersonName can't be blank");
 
-            IActionResult result = await personsController.Create(person_add_request);//SO MODEL STATE IS NO LONGER VALID
+            IActionResult result = await personsController.Create(person_add_request);
 
             //Assert
-            ViewResult viewResult = Assert.IsType<ViewResult>(result);//IN THIS CASE EVERYTHING WORKS FINE   
+            ViewResult viewResult = Assert.IsType<ViewResult>(result); 
 
             viewResult.ViewData.Model.Should().BeAssignableTo<PersonAddRequest>();
             viewResult.ViewData.Model.Should().Be(person_add_request);
@@ -122,6 +122,7 @@ namespace CRUDTests
             PersonUpdateRequest person_update_request = _fixture.Create<PersonUpdateRequest>();
             PersonResponse person_response = null;
 
+            _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
             _personsServiceMock.Setup(p => p.UpdatePerson(It.IsAny<PersonUpdateRequest>())).ReturnsAsync(person_response);
 
             PersonsController personsController = new PersonsController(_personsService, _countriesService);
@@ -142,6 +143,7 @@ namespace CRUDTests
             PersonUpdateRequest person_update_request = _fixture.Create<PersonUpdateRequest>();
             PersonResponse person_response = _fixture.Create<PersonResponse>();
 
+            _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
             _personsServiceMock.Setup(p => p.UpdatePerson(It.IsAny<PersonUpdateRequest>())).ReturnsAsync(person_response);
 
             PersonsController personsController = new PersonsController(_personsService, _countriesService);
@@ -159,11 +161,11 @@ namespace CRUDTests
         public async Task Edit_IfModelErrors_ToReturnEditView()
         {
             //Arrange
-            PersonUpdateRequest person_update_request = _fixture.Build<PersonUpdateRequest>().Create<PersonUpdateRequest>();
-            PersonResponse person_response = _fixture.Create<PersonResponse>();
-            List<CountryResponse> countries = _fixture.Create<List<CountryResponse>>();
+            PersonUpdateRequest person_update_request = _fixture.Create<PersonUpdateRequest>();
+            PersonResponse person_response = _fixture.Build<PersonResponse>().With(p => p.Gender, "Male").Create();
+            List<CountryResponse> countries = _fixture.Create<List<CountryResponse>>().ToList();
 
-            _personsServiceMock.Setup(p => p.UpdatePerson(It.IsAny<PersonUpdateRequest>())).ReturnsAsync(person_response);
+            _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
             _countriesServiceMock.Setup(c => c.GetAllCountries()).ReturnsAsync(countries);
 
             PersonsController personsController = new PersonsController(_personsService, _countriesService);
@@ -177,7 +179,7 @@ namespace CRUDTests
             ViewResult viewResult = Assert.IsType<ViewResult>(result);
 
             viewResult.Model.Should().BeAssignableTo<PersonUpdateRequest>();
-            viewResult.Model.Should().Be(person_update_request);
+            viewResult.Model.Should().BeEquivalentTo(person_response.ToPersonUpdateRequest());
         }
 
         #endregion
