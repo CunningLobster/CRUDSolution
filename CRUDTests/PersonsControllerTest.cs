@@ -123,10 +123,8 @@ namespace CRUDTests
             PersonResponse person_response = null;
 
             _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
-            _personsServiceMock.Setup(p => p.UpdatePerson(It.IsAny<PersonUpdateRequest>())).ReturnsAsync(person_response);
 
             PersonsController personsController = new PersonsController(_personsService, _countriesService);
-
             //Act
             IActionResult result = await personsController.Edit(person_update_request);
 
@@ -181,6 +179,50 @@ namespace CRUDTests
             viewResult.Model.Should().BeAssignableTo<PersonUpdateRequest>();
             viewResult.Model.Should().BeEquivalentTo(person_response.ToPersonUpdateRequest());
         }
+
+        #endregion
+
+        #region Delete
+
+        [Fact]
+        public async Task Delete_PersonResponseIsNull_ToIndexView()
+        {
+            //Arrange
+            PersonUpdateRequest person_update_result = _fixture.Create<PersonUpdateRequest>();
+            PersonResponse? person_response = null;
+
+            _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
+
+            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+
+            //Act
+            IActionResult result = await personsController.Delete(person_update_result);
+
+            //Assert
+            RedirectToActionResult redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            redirectResult.ActionName.Should().Be("Index");
+        }
+
+        [Fact]
+        public async Task Delete_ProperPersonDetails_ToIndexView()
+        {
+            //Arrange
+            PersonUpdateRequest person_update_result = _fixture.Create<PersonUpdateRequest>();
+            PersonResponse? person_response = _fixture.Build<PersonResponse>().With(p => p.Gender, "Other").Create();
+
+            _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
+            _personsServiceMock.Setup(p => p.DeletePerson(It.IsAny<Guid>())).ReturnsAsync(true);
+
+            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+
+            //Act
+            IActionResult result = await personsController.Delete(person_update_result);
+
+            //Assert
+            RedirectToActionResult redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            redirectResult.ActionName.Should().Be("Index");
+        }
+
 
         #endregion
     }
