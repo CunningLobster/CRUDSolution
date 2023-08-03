@@ -33,5 +33,10 @@ namespace Entities
 
         [ForeignKey("CountryId")]
         public Country? Country { get; set; } //Navigation Property
+
+        public override string ToString()
+        {
+            return $"PersonId: {PersonId}, PersonName: {PersonName}, Email: {Email}, DateOfBirth: {DateOfBirth?.ToString("dd/mm/yyyy")}, Gender: {Gender}, CountryId: {CountryId}, Address: {Address}, ReceiveNewsLetters: {ReceiveNewsLetters}, TIN: {TIN}";
+        }
     }
 }

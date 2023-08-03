@@ -12,6 +12,8 @@ using ServiceContracts.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using FluentAssertions;
+using Services;
+using Microsoft.Extensions.Logging;
 
 namespace CRUDTests
 {
@@ -19,9 +21,11 @@ namespace CRUDTests
     {
         private readonly IPersonsService _personsService;
         private readonly ICountriesService _countriesService;
+        private readonly ILogger<PersonsController> _logger;
 
         private readonly Mock<ICountriesService> _countriesServiceMock;
         private readonly Mock<IPersonsService> _personsServiceMock;
+        private readonly Mock<ILogger<PersonsController>> _loggerMock;
 
         private readonly Fixture _fixture;
 
@@ -31,9 +35,11 @@ namespace CRUDTests
 
             _countriesServiceMock = new Mock<ICountriesService>();
             _personsServiceMock = new Mock<IPersonsService>();
+            _loggerMock = new Mock<ILogger<PersonsController>>();
 
             _personsService = _personsServiceMock.Object;
             _countriesService = _countriesServiceMock.Object;
+            _logger = _loggerMock.Object;
         }
 
         #region Index
@@ -44,7 +50,7 @@ namespace CRUDTests
             //Arrange
             List<PersonResponse> persons_response_list = _fixture.Create<List<PersonResponse>>();
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             _personsServiceMock.Setup(p => p.GetFilteredPersons(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(persons_response_list);
             _personsServiceMock.Setup(p => p.GetSortedPersons(It.IsAny<List<PersonResponse>>(), It.IsAny<string>(), It.IsAny<SortOrderOptions>())).ReturnsAsync(persons_response_list);
@@ -75,7 +81,7 @@ namespace CRUDTests
             _countriesServiceMock.Setup(c => c.GetAllCountries()).ReturnsAsync(countries);
             _personsServiceMock.Setup(p => p.AddPerson(It.IsAny<PersonAddRequest>())).ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             //Act
             personsController.ModelState.AddModelError("PersonName", "PersonName can't be blank");
@@ -100,7 +106,7 @@ namespace CRUDTests
             _countriesServiceMock.Setup(c => c.GetAllCountries()).ReturnsAsync(countries);
             _personsServiceMock.Setup(p => p.AddPerson(It.IsAny<PersonAddRequest>())).ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             //Act
             IActionResult result = await personsController.Create(person_add_request);
@@ -124,7 +130,7 @@ namespace CRUDTests
 
             _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
             //Act
             IActionResult result = await personsController.Edit(person_update_request);
 
@@ -144,7 +150,7 @@ namespace CRUDTests
             _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
             _personsServiceMock.Setup(p => p.UpdatePerson(It.IsAny<PersonUpdateRequest>())).ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             //Act
             IActionResult result = await personsController.Edit(person_update_request);
@@ -166,7 +172,7 @@ namespace CRUDTests
             _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
             _countriesServiceMock.Setup(c => c.GetAllCountries()).ReturnsAsync(countries);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             //Act
             personsController.ModelState.AddModelError("PersonName", "PersonName can't be blank");
@@ -193,7 +199,7 @@ namespace CRUDTests
 
             _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             //Act
             IActionResult result = await personsController.Delete(person_update_result);
@@ -213,7 +219,7 @@ namespace CRUDTests
             _personsServiceMock.Setup(p => p.GetPersonByPersonId(It.IsAny<Guid>())).ReturnsAsync(person_response);
             _personsServiceMock.Setup(p => p.DeletePerson(It.IsAny<Guid>())).ReturnsAsync(true);
 
-            PersonsController personsController = new PersonsController(_personsService, _countriesService);
+            PersonsController personsController = new PersonsController(_personsService, _countriesService, _logger);
 
             //Act
             IActionResult result = await personsController.Delete(person_update_result);

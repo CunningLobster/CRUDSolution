@@ -11,6 +11,9 @@ using FluentAssertions;
 using RepositoryContracts;
 using Moq;
 using System.Linq.Expressions;
+using Serilog.Extensions.Hosting;
+using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace CRUDTests
 {
@@ -30,10 +33,12 @@ namespace CRUDTests
 
             _personRepositoryMock = new Mock<IPersonsRepository>();
             _personsRepository = _personRepositoryMock.Object;
+            var diagnosticContextMock = new Mock<IDiagnosticContext>();
+            var loggerMock = new Mock<ILogger<PersonsService>>();
 
             var dbContextMock = new DbContextMock<ApplicationDbContext>(new DbContextOptionsBuilder<ApplicationDbContext>().Options);
 
-            _personsService = new PersonsService(_personsRepository);
+            _personsService = new PersonsService(_personsRepository, loggerMock.Object, diagnosticContextMock.Object);
 
             _testOutputHelper = testOutputHelper;
         }
