@@ -6,6 +6,7 @@ using ServiceContracts;
 using Services;
 using Serilog;
 using Serilog.AspNetCore;
+using CRUDExample.Filters.ActionFilters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,11 @@ builder.Host.UseSerilog((HostBuilderContext context, IServiceProvider services, 
     .ReadFrom.Services(services); //Read from current app's services and make them available for serilog
 });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => {
+    var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<ResponseHeaderActionFilter>>();
+
+    options.Filters.Add(new ResponseHeaderActionFilter(logger, "My-Key-From-Global", "My-Value-From-Global", 2));
+});
 
 //Add services into IoC container
 builder.Services.AddScoped<ICountriesRepository, CountriesRepository>();
@@ -34,7 +39,8 @@ builder.Services.AddScoped<ICountriesService, CountriesService>();
 builder.Services.AddScoped<IPersonsService, PersonsService>();
 
 //Add Db context
-builder.Services.AddDbContext<ApplicationDbContext>(options => {
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
